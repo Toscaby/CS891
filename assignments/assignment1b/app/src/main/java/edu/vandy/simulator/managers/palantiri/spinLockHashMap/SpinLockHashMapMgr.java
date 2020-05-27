@@ -1,14 +1,12 @@
 package edu.vandy.simulator.managers.palantiri.spinLockHashMap;
 
-import org.jetbrains.annotations.NotNull;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.Semaphore;
-
 import edu.vandy.simulator.managers.palantiri.Palantir;
 import edu.vandy.simulator.managers.palantiri.PalantiriManager;
 import edu.vandy.simulator.utils.Assignment;
+import java.util.HashMap;
+import java.util.concurrent.Semaphore;
+import java.util.function.Supplier;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * A PalantiriManager implemented using a SpinLock, a Semaphore, and a
@@ -33,20 +31,20 @@ public class SpinLockHashMapMgr
      * serialize on a critical section.
      */
     // TODO -- you fill in here.
-
+    private CancellableLock lock;
     /**
      * A counting Semaphore that limits concurrent access to the fixed
      * number of available palantiri managed by the PalantiriManager.
      */
     // TODO -- you fill in here.
-
+    private Semaphore semaphore;
     /**
      * @return The "spin lock" instance.
      */
     public CancellableLock getSpinLock() {
         // TODO -- you fill in here, replacing null with the proper
         // code.
-        return null;
+        return lock;
     }
 
     /**
@@ -55,7 +53,7 @@ public class SpinLockHashMapMgr
     public Semaphore getAvailablePalantiri() {
         // TODO -- you fill in here, replacing null with the proper
         // code.
-        return null;
+        return semaphore;
     }
 
     /**
@@ -64,7 +62,7 @@ public class SpinLockHashMapMgr
     public HashMap<Palantir, Boolean> getPalantiriMap() {
         // TODO -- you fill in here, replacing null with the proper
         // code.
-        return null;
+        return mPalantiriMap;
     }
 
     /**
@@ -80,10 +78,14 @@ public class SpinLockHashMapMgr
         // getPalantiri() factory method and initialize each key in
         // the mPalantiriMap with "true" to indicate it's available.
         // TODO -- you fill in here.
+        getPalantiri().forEach((palantir) -> {
+            mPalantiriMap.put(palantir, true);
+        });
 
         // Initialize the Semaphore to use a "fair" implementation
         // that mediates concurrent access to the given Palantiri.
         // TODO -- you fill in here.
+        semaphore = new Semaphore(mPalantiriMap.size(), true);
 
         if (Assignment.isUndergraduateTodo()) {
             // UNDERGRADUATES:
@@ -95,6 +97,8 @@ public class SpinLockHashMapMgr
             // to UNDERGRADUATE in the edu.vandy.simulator.utils.Assignment.
 
             // TODO -- you fill in here.
+            lock = new SpinLock();
+
         } else if (Assignment.isGraduateTodo()) {
             // GRADUATES:
             //
@@ -127,6 +131,20 @@ public class SpinLockHashMapMgr
         // isn't available, return that palantir to the client, and
         // release the spin-lock.
         // TODO -- you fill in here.
+        semaphore.acquire();
+        lock.lock(() -> { return isCancelled();});
+        Palantir palantir = null;
+        for (Palantir p : mPalantiriMap.keySet()) {
+            if (mPalantiriMap.get(p)) {
+                mPalantiriMap.put(p, false);
+                palantir = p;
+                break;
+            }
+        }
+        lock.unlock();
+        if (palantir != null) {
+            return palantir;
+        }
 
         // This invariant should always hold for all acquire()
         // implementations if implemented correctly. That is the
@@ -152,6 +170,10 @@ public class SpinLockHashMapMgr
         // in a thread-safe manner and release the Semaphore if all
         // works properly.
         // TODO -- you fill in here.
+        lock.lock(()->{return isCancelled();});
+        mPalantiriMap.put(palantir, true);
+        semaphore.release();
+        lock.unlock();
     }
 
     /**
@@ -164,7 +186,7 @@ public class SpinLockHashMapMgr
     protected int availablePermits() {
         // TODO -- you fill in here, replacing -1 with the proper
         // code.
-        return -1;
+        return semaphore.availablePermits();
     }
 
     /**

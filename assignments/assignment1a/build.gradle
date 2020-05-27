@@ -4,8 +4,10 @@ buildscript {
     apply from: 'dependencies.gradle'
 
     repositories {
-        jcenter()
-        google()
+	    maven { url 'http://maven.aliyun.com/nexus/content/groups/public/' }
+		  maven { url 'http://maven.aliyun.com/nexus/content/repositories/jcenter' }
+      jcenter()
+      google()
     }
 
     dependencies {
@@ -20,9 +22,11 @@ plugins {
 
 allprojects {
     repositories {
-        mavenCentral()
-        jcenter()
-        google()
+	    maven { url 'http://maven.aliyun.com/nexus/content/groups/public/' }
+		  maven { url 'http://maven.aliyun.com/nexus/content/repositories/jcenter' }
+      mavenCentral()
+      jcenter()
+      google()
     }
 }
 

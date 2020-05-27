@@ -38,7 +38,7 @@ public class RunnableThreadsMgr
         // Return a new SimpleBeingRunnable instance.
         // TODO -- you fill in here, replacing null with the
         // appropriate code.
-        return null;
+        return new SimpleBeingRunnable(this);
     }
 
     /**
@@ -49,14 +49,19 @@ public class RunnableThreadsMgr
     public void runSimulation() {
         // Call a method to create and start a thread for each being.
         // TODO -- you fill in here.
-
+        beginBeingThreads();
         // Call a method that creates and starts a thread that's then
         //  used to wait for all the being threads to finish and
         //  return that thread to the caller.
         // TODO -- you fill in here.
-
+        Thread thread = createAndStartWaiterForBeingThreads();
         // Block until the waiter thread has finished.
         // TODO -- you fill in here.
+        try {
+            thread.join();
+        } catch (InterruptedException ie) {
+            ie.printStackTrace();
+        }
     }
 
     /**
@@ -77,9 +82,13 @@ public class RunnableThreadsMgr
         // (though they are free to do to if they choose).
         //
         // TODO -- you fill in here.
-
+        mBeingThreads = new ArrayList<>();
+        getBeings().forEach(being -> {
+            mBeingThreads.add(new Thread(being));
+        });
         // Start all the threads in the List of Threads.
         // TODO -- you fill in here.
+        mBeingThreads.forEach(Thread::start);
     }
 
     /**
@@ -96,13 +105,21 @@ public class RunnableThreadsMgr
         // the catch clause, which trigger the simulator to generate a
         // shutdownNow() request.
         // TODO -- you fill in here.
-
+        Thread waiterThread = new Thread(() -> {
+            mBeingThreads.forEach(beingThread -> {
+                try {
+                    beingThread.join();
+                } catch (InterruptedException ie) {
+                    error(ie);
+                }
+            });
+        });
         // Start running the thread.
         // TODO -- you fill in here.
-
+        waiterThread.start();
         // Return the thread.
         // TODO -- you fill in here, replacing null with the thread that was created.
-        return null;
+        return waiterThread;
     }
 
     /**
