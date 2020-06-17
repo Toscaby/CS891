@@ -133,31 +133,36 @@ public class SpinLockHashMapMgr
         // isn't available, return that palantir to the client, and
         // release the spin-lock.
         // TODO -- you fill in here.
-        semaphore.acquire();
-        lock.lock(this::isCancelled);
-        Palantir palantir = null;
-        for (Palantir p : mPalantiriMap.keySet()) {
-            if (mPalantiriMap.get(p)) {
-                mPalantiriMap.put(p, false);
-                palantir = p;
-                break;
-            }
-        }
-        lock.unlock();
+        //semaphore.acquire();
+        //lock.lock(this::isCancelled);
+        //Palantir palantir = null;
+        //for (Palantir p : mPalantiriMap.keySet()) {
+        //    if (mPalantiriMap.get(p)) {
+        //        mPalantiriMap.put(p, false);
+        //        palantir = p;
+        //        break;
+        //    }
+        //}
+        //lock.unlock();
 
 
         // 上面注释掉的方法效率太低， get/put/replace都是从头遍历
-        //try {
-        //    for (Map.Entry<Palantir, Boolean> entry : mPalantiriMap.entrySet()) {
-        //        if (entry.getValue()) {
-        //            entry.setValue(false);
-        //            palantir = entry.getKey();
-        //            break;
-        //        }
-        //    }
-        //} finally {
-        //    lock.unlock();
-        //}
+        // 而且unlock要在try finally之内
+        Palantir palantir = null;
+
+        try {
+            semaphore.acquire();
+            lock.lock(this::isCancelled);
+            for (Map.Entry<Palantir, Boolean> entry : mPalantiriMap.entrySet()) {
+                if (entry.getValue()) {
+                    entry.setValue(false);
+                    palantir = entry.getKey();
+                    break;
+                }
+            }
+        } finally {
+            lock.unlock();
+        }
 
         if (palantir != null) {
             return palantir;
@@ -187,22 +192,16 @@ public class SpinLockHashMapMgr
         // in a thread-safe manner and release the Semaphore if all
         // works properly.
         // TODO -- you fill in here.
-        //if (palantir == null) {
-        //    return;
-        //}
-        //
-        //lock.lock(this::isCancelled);
-        //try {
-        //    if (mPalantiriMap.put(palantir, true)) {
-        //        semaphore.release();
-        //    }
-        //} finally {
-        //    lock.unlock();
-        //}
-        lock.lock(()->{return isCancelled();});
-        mPalantiriMap.put(palantir, true);
-        semaphore.release();
-        lock.unlock();
+        if (palantir == null) {
+            return;
+        }
+        try {
+            lock.lock(this::isCancelled);
+            mPalantiriMap.put(palantir, true);
+            semaphore.release();
+        } finally {
+            lock.unlock();
+        }
     }
 
     /**
