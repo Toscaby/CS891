@@ -17,12 +17,14 @@ class ReentrantSpinLock
      * should be "unlocked".
      */
     // TODO -- you fill in here.
- 
+    private AtomicReference<Thread> mOwner = new AtomicReference<>(null);
+
     /**
      * Count the number of times the owner thread has recursively
      * acquired the lock.
      */
     // TODO -- you fill in here.
+    private int recursionCount = 0;
 
     /**
      * @return The current recursion count.
@@ -30,7 +32,7 @@ class ReentrantSpinLock
     public int getRecursionCount() {
         // TODO -- you fill in here, replacing -1 with the appropriate
         // value.
-        return -1;
+        return recursionCount;
     }
 
     /**
@@ -45,7 +47,7 @@ class ReentrantSpinLock
         // succeeds iff its current value is null (false).
         // TODO -- you fill in here, replacing false with the proper
         // code.
-        return false;
+        return mOwner.compareAndSet(null, Thread.currentThread());
     }
 
     /**
@@ -69,6 +71,17 @@ class ReentrantSpinLock
         // check if a shutdown has been requested and if so throw a
         // cancellation exception.  
         // TODO -- you fill in here.
+
+        if (mOwner.get() == Thread.currentThread()) {
+            recursionCount ++;
+        } else {
+            // do the recursive logic here
+            while (!tryLock()) {
+                if (isCancelled != null && isCancelled.get()) {
+                    throw new CancellationException("lock cancellation!");
+                }
+            }
+        }
     }
 
     /**
@@ -82,5 +95,15 @@ class ReentrantSpinLock
         // mOwner.
 
         // TODO -- you fill in here.
+        Thread currentThread = Thread.currentThread();
+        Thread currentOwner = mOwner.get();
+        if (currentThread.getId() == currentOwner.getId()) {
+            if (recursionCount > 0) {
+                recursionCount--;
+                return;
+            } else {
+                mOwner.compareAndSet(currentThread, null);
+            }
+        }
     }
 }

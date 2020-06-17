@@ -4,8 +4,9 @@ import edu.vandy.simulator.managers.palantiri.Palantir;
 import edu.vandy.simulator.managers.palantiri.PalantiriManager;
 import edu.vandy.simulator.utils.Assignment;
 import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Semaphore;
-import java.util.function.Supplier;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -109,6 +110,7 @@ public class SpinLockHashMapMgr
             // to GRADUATE in the edu.vandy.simulator.utils.Assignment.
 
             // TODO -- you fill in here.
+            lock = new ReentrantSpinLock();
         } else {
             throw new IllegalStateException("Invalid assignment type");
         }
@@ -132,7 +134,7 @@ public class SpinLockHashMapMgr
         // release the spin-lock.
         // TODO -- you fill in here.
         semaphore.acquire();
-        lock.lock(() -> { return isCancelled();});
+        lock.lock(this::isCancelled);
         Palantir palantir = null;
         for (Palantir p : mPalantiriMap.keySet()) {
             if (mPalantiriMap.get(p)) {
@@ -142,6 +144,21 @@ public class SpinLockHashMapMgr
             }
         }
         lock.unlock();
+
+
+        // 上面注释掉的方法效率太低， get/put/replace都是从头遍历
+        //try {
+        //    for (Map.Entry<Palantir, Boolean> entry : mPalantiriMap.entrySet()) {
+        //        if (entry.getValue()) {
+        //            entry.setValue(false);
+        //            palantir = entry.getKey();
+        //            break;
+        //        }
+        //    }
+        //} finally {
+        //    lock.unlock();
+        //}
+
         if (palantir != null) {
             return palantir;
         }
@@ -170,6 +187,18 @@ public class SpinLockHashMapMgr
         // in a thread-safe manner and release the Semaphore if all
         // works properly.
         // TODO -- you fill in here.
+        //if (palantir == null) {
+        //    return;
+        //}
+        //
+        //lock.lock(this::isCancelled);
+        //try {
+        //    if (mPalantiriMap.put(palantir, true)) {
+        //        semaphore.release();
+        //    }
+        //} finally {
+        //    lock.unlock();
+        //}
         lock.lock(()->{return isCancelled();});
         mPalantiriMap.put(palantir, true);
         semaphore.release();
