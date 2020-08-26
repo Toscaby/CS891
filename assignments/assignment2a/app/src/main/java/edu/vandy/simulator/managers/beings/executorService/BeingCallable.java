@@ -53,6 +53,10 @@ class BeingCallable
 
         // TODO -- you fill in here.
         Palantir palantir = acquirePalantir();
+        if (palantir == null) {
+            error("illegal state exception!");
+            return;
+        }
         try {
             palantir.gaze(this);
         } finally {
