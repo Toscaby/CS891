@@ -14,7 +14,7 @@ public class SimpleSemaphore {
      */
     // TODO - you fill in here.  Ensure that this field will ensure
     // its values aren't cached by multiple threads..
-    int permits;
+    volatile int permits;
 
     /**
      * Define a Lock to protect critical sections.
@@ -77,15 +77,17 @@ public class SimpleSemaphore {
     public void acquireUninterruptibly() {
         // TODO -- you fill in here, make sure the lock is always
         // released, e.g., even if an exception occurs.
-        lock.lock();
-        try {
-            while (permits == 0)
-                permitNotEmpty.await();
-            permits--;
-        } catch (InterruptedException ie) {
-            ie.getLocalizedMessage();
-        } finally {
-            lock.unlock();
+        boolean interrupted = false;
+        while (true) {
+            try {
+                acquire();
+                break;
+            } catch (InterruptedException ie) {
+                interrupted = true;
+            }
+        }
+        if (interrupted) {
+            Thread.currentThread().interrupt();
         }
     }
 
