@@ -9,8 +9,8 @@ import java.util.function.Supplier;
  * recursive semantics and should be implemented by students taking
  * the class for graduate credit.
  */
-class ReentrantSpinLock
-        implements CancellableLock {
+class ReentrantSpinLock 
+      implements CancellableLock {
     /**
      * Define an AtomicReference that's used as the basis for an
      * atomic compare-and-swap.  The default state of the spinlock
@@ -57,11 +57,11 @@ class ReentrantSpinLock
      *                    to lock should be abandoned due to a pending
      *                    shutdown operation.
      * @throws CancellationException Thrown only if a pending shutdown
-     *                               operation is has been detected by calling the isCancelled supplier.
+     * operation is has been detected by calling the isCancelled supplier.
      */
     @Override
     public void lock(Supplier<Boolean> isCancelled)
-            throws CancellationException {
+        throws CancellationException {
         // If the current thread owns the lock simply increment the
         // recursion count.  Otherwise, loop trying to set mOwner's
         // value to the current thread reference, which succeeds iff

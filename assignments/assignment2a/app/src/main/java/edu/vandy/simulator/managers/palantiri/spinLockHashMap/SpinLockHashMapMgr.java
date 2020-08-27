@@ -10,6 +10,11 @@ import java.util.concurrent.Semaphore;
 import edu.vandy.simulator.managers.palantiri.Palantir;
 import edu.vandy.simulator.managers.palantiri.PalantiriManager;
 import edu.vandy.simulator.utils.Assignment;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.Semaphore;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * A PalantiriManager implemented using a SpinLock, a Semaphore, and a
@@ -148,7 +153,6 @@ public class SpinLockHashMapMgr
 
         // This invariant should always hold for all acquire()
         // implementations if implemented correctly. That is the
-
         // purpose of enforcing the @NotNull along with the
         // CancellationException; It makes it clear that all
         // implementations should either be successful (if implemented
@@ -174,7 +178,6 @@ public class SpinLockHashMapMgr
         if (palantir == null) {
             return;
         }
-
         lock.lock(this::isCancelled);
         mPalantiriMap.put(palantir, true);
         lock.unlock();

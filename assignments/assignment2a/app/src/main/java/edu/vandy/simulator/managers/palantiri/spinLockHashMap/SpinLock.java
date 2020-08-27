@@ -8,8 +8,8 @@ import java.util.function.Supplier;
  * This class emulates a "compare and swap"-style spin lock with
  * non-recursive semantics.
  */
-class SpinLock
-        implements CancellableLock {
+class SpinLock 
+      implements CancellableLock {
     /**
      * Define an AtomicBoolean that's used as the basis for an atomic
      * compare-and-swap.  The default state of the spinlock should be
@@ -18,7 +18,7 @@ class SpinLock
     // TODO -- you fill in here.
     private AtomicBoolean owner = new AtomicBoolean(false);
     /**
-     * @return The AtomicBoolean used for compare-and-swap.
+     * @return The AtomicBoolean used for compare-and-swagitp.
      */
     public AtomicBoolean getOwner() {
         // TODO -- you fill in here, replacing null with the proper
@@ -50,11 +50,11 @@ class SpinLock
      *                    to lock should be abandoned due to a pending
      *                    shutdown operation.
      * @throws CancellationException Thrown only if a pending shutdown
-     *                               operation is has been detected by calling the isCancelled supplier.
+     * operation is has been detected by calling the isCancelled supplier.
      */
     @Override
     public void lock(Supplier<Boolean> isCancelled)
-            throws CancellationException {
+        throws CancellationException {
         // Loop trying to set mOwner's value to true, which succeeds
         // iff its current value is false.  Each iteration should also
         // check if a shutdown has been requested and if so throw a
@@ -75,7 +75,6 @@ class SpinLock
         // Atomically release the lock that's currently held by
         // mOwner.
         // TODO -- you fill in here.
-
         // Set mOwner's value to false, which atomically releases the
         // lock that's currently held.
         owner.getAndSet(false);
