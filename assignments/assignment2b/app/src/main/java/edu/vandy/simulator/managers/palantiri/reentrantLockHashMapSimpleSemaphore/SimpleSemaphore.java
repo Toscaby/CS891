@@ -112,11 +112,6 @@ public class SimpleSemaphore {
     protected int availablePermits() {
         // TODO -- you fill in here, replacing 0 with the
         // appropriate field.
-        lock.lock();
-        try {
-            return permits;
-        } finally {
-            lock.unlock();
-        }
+        return permits;
     }
 }
