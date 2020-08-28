@@ -130,14 +130,17 @@ public class SpinLockHashMapMgr
 
         semaphore.acquire();
         lock.lock(this::isCancelled);
-        for (Map.Entry<Palantir, Boolean> entry : mPalantiriMap.entrySet()) {
-            if (entry.getValue()) {
-                entry.setValue(false);
-                palantir = entry.getKey();
-                break;
+        try {
+            for (Map.Entry<Palantir, Boolean> entry : mPalantiriMap.entrySet()) {
+                if (entry.getValue()) {
+                    entry.setValue(false);
+                    palantir = entry.getKey();
+                    break;
+                }
             }
+        } finally {
+            lock.unlock();
         }
-        lock.unlock();
 
         if (palantir != null) {
             return palantir;
@@ -172,10 +175,16 @@ public class SpinLockHashMapMgr
             return;
         }
 
+        boolean previous;
         lock.lock(this::isCancelled);
-        mPalantiriMap.put(palantir, true);
-        lock.unlock();
-        semaphore.release();
+        try {
+            previous = mPalantiriMap.put(palantir, true);
+        } finally {
+            lock.unlock();
+        }
+        if (!previous) {
+            semaphore.release();
+        }
     }
 
     /**
