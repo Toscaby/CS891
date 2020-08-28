@@ -5,6 +5,7 @@ import android.util.Log;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.Semaphore;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
@@ -45,13 +46,13 @@ public class ReentrantLockHashMapSimpleSemaphoreMgr extends PalantiriManager {
      * PalantiriManager.
      */
     // TODO -- you fill in here.
-    SimpleSemaphore semaphore;
+    SimpleSemaphore semaphore = null;
 
     /**
      * A Lock used to protect critical sections involving the HashMap.
      */
     // TODO -- you fill in here.
-    Lock lock;
+    Lock lock = null;
 
     /**
      * Resets the fields to their initial values
@@ -105,11 +106,10 @@ public class ReentrantLockHashMapSimpleSemaphoreMgr extends PalantiriManager {
 
         if (Assignment.isUndergraduateTodo()) {
             // TODO -- you fill in here.
-            List<Palantir> list = getPalantiri();
-            list.forEach((palantir) -> {
+            getPalantiri().forEach((palantir) -> {
                 mPalantiriMap.put(palantir, true);
             });
-            semaphore = new SimpleSemaphore(list.size());
+            semaphore = new SimpleSemaphore(getPalantirCount());
             lock = new ReentrantLock(); // default non-fair
         } else if (Assignment.isGraduateTodo()) {
             // TODO -- you fill in here.

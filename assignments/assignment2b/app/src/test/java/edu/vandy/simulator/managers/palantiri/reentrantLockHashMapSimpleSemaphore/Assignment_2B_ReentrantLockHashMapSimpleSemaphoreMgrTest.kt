@@ -103,7 +103,7 @@ class Assignment_2B_ReentrantLockHashMapSimpleSemaphoreMgrTest : AssignmentTests
         lenient().`when`(managerMock.palantiri).thenReturn(mockPalantiri)
         lenient().`when`(managerMock.palantirCount).thenReturn(mockPalantiri.size)
         doCallRealMethod().whenever(managerMock).buildModel()
-        doCallRealMethod().whenever(managerMock).semaphore
+//        doCallRealMethod().whenever(managerMock).semaphore
 
         // Call SUT method.
         managerMock.buildModel()
@@ -172,7 +172,7 @@ class Assignment_2B_ReentrantLockHashMapSimpleSemaphoreMgrTest : AssignmentTests
             // be initialized.
         }
 
-        doCallRealMethod().whenever(managerMock).semaphore
+//        doCallRealMethod().whenever(managerMock).semaphore
 
         val simpleSemaphore = managerMock.semaphore
         assertNotNull("getSemaphore() should return a non-null SimpleSemaphore value.", simpleSemaphore)
