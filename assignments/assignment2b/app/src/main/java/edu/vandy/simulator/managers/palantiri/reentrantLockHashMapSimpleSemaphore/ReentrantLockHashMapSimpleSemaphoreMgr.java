@@ -2,6 +2,9 @@ package edu.vandy.simulator.managers.palantiri.reentrantLockHashMapSimpleSemapho
 
 import android.util.Log;
 
+import java.util.Iterator;
+import java.util.List;
+import java.util.concurrent.Semaphore;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
@@ -42,11 +45,13 @@ public class ReentrantLockHashMapSimpleSemaphoreMgr extends PalantiriManager {
      * PalantiriManager.
      */
     // TODO -- you fill in here.
+    SimpleSemaphore semaphore;
 
     /**
      * A Lock used to protect critical sections involving the HashMap.
      */
     // TODO -- you fill in here.
+    Lock lock;
 
     /**
      * Resets the fields to their initial values
@@ -67,7 +72,7 @@ public class ReentrantLockHashMapSimpleSemaphoreMgr extends PalantiriManager {
     SimpleSemaphore getSemaphore() {
         // TODO -- you fill in here, replacing null with the
         // appropriate field.
-        return null;
+        return semaphore;
     }
 
     /**
@@ -100,6 +105,12 @@ public class ReentrantLockHashMapSimpleSemaphoreMgr extends PalantiriManager {
 
         if (Assignment.isUndergraduateTodo()) {
             // TODO -- you fill in here.
+            List<Palantir> list = getPalantiri();
+            list.forEach((palantir) -> {
+                mPalantiriMap.put(palantir, true);
+            });
+            semaphore = new SimpleSemaphore(list.size());
+            lock = new ReentrantLock(); // default non-fair
         } else if (Assignment.isGraduateTodo()) {
             // TODO -- you fill in here.
         } else {
@@ -133,7 +144,21 @@ public class ReentrantLockHashMapSimpleSemaphoreMgr extends PalantiriManager {
 
         if (Assignment.isUndergraduateTodo()) {
             // TODO -- you fill in here.
-
+            Palantir palantir = null;
+            semaphore.acquire();
+            lock.lockInterruptibly();
+            try {
+                for (Map.Entry<Palantir, Boolean> entry : mPalantiriMap.entrySet()) {
+                    if (entry.getValue()) {
+                        entry.setValue(false);
+                        palantir = entry.getKey();
+                        break;
+                    }
+                }
+            } finally {
+                lock.unlock();
+            }
+            return palantir;
         } else if (Assignment.isGraduateTodo()) {
                 // TODO -- you fill in here.
         } else {
@@ -165,6 +190,20 @@ public class ReentrantLockHashMapSimpleSemaphoreMgr extends PalantiriManager {
         // in a thread-safe manner and release the SimpleSemaphore if
         // all works properly.
         // TODO -- you fill in here.
+        if (palantir == null) {
+            return;
+        }
+
+        boolean previous;
+        lock.lock();
+        try {
+            previous = mPalantiriMap.put(palantir, true);
+        } finally {
+            lock.unlock();
+        }
+        if (!previous) {
+            semaphore.release();
+        }
     }
 
     /**
@@ -176,7 +215,7 @@ public class ReentrantLockHashMapSimpleSemaphoreMgr extends PalantiriManager {
     @Override
     protected int availablePermits() {
         // TODO -- replace 0 with the appropriate method call.
-        return 0;
+        return semaphore.availablePermits();
     }
 
     /**
