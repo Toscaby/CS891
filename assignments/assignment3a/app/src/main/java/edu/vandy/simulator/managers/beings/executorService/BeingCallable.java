@@ -1,10 +1,9 @@
 package edu.vandy.simulator.managers.beings.executorService;
 
-import java.util.concurrent.Callable;
-
 import edu.vandy.simulator.managers.beings.Being;
 import edu.vandy.simulator.managers.beings.BeingManager;
 import edu.vandy.simulator.managers.palantiri.Palantir;
+import java.util.concurrent.Callable;
 
 /**
  * This class implements the gazing logic of a Being.
@@ -33,7 +32,7 @@ class BeingCallable
         runGazingSimulation(getGazingIterations());
 
         // TODO -- replace "null" with the appropriate return value.
-        return null;
+        return this;
     }
 
     /**
@@ -52,5 +51,15 @@ class BeingCallable
         // a call to the appropriate base class helper method.
 
         // TODO -- you fill in here.
+        Palantir palantir = acquirePalantir();
+        if (palantir == null) {
+            error("illegal state exception!");
+            return;
+        }
+        try {
+            palantir.gaze(this);
+        } finally {
+            releasePalantir(palantir);
+        }
     }
 }

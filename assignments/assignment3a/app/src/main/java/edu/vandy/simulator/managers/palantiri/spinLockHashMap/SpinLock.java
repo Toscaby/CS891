@@ -16,14 +16,14 @@ class SpinLock
      * "unlocked".
      */
     // TODO -- you fill in here.
-
+    private AtomicBoolean owner = new AtomicBoolean(false);
     /**
      * @return The AtomicBoolean used for compare-and-swap.
      */
     public AtomicBoolean getOwner() {
         // TODO -- you fill in here, replacing null with the proper
         // code.
-        return null;
+        return owner;
     }
 
     /**
@@ -38,7 +38,7 @@ class SpinLock
         // current value is false.
         // TODO -- you fill in here, replacing false with the proper
         // code.
-        return false;
+        return owner.compareAndSet(false, true);
     }
 
     /**
@@ -60,17 +60,24 @@ class SpinLock
         // check if a shutdown has been requested and if so throw a
         // cancellation exception.
         // TODO -- you fill in here.
+        while (!tryLock()) {
+            if (isCancelled.get()) {
+                throw new CancellationException("lock cancellation!");
+            }
+        }
     }
 
     /**
-     * Release the lock.  Throws IllegalMonitorStateException if
-     * the calling thread doesn't own the lock.
+     * Release the lock.
      */
     @Override
     public void unlock() {
         // Atomically release the lock that's currently held by
-        // mOwner. If the lock is not held by mOwner, then throw
-        // an IllegalMonitorStateException.
+        // mOwner.
         // TODO -- you fill in here.
+
+        // Set mOwner's value to false, which atomically releases the
+        // lock that's currently held.
+        owner.getAndSet(false);
     }
 }

@@ -14,17 +14,20 @@ public class SimpleSemaphore {
      */
     // TODO - you fill in here.  Ensure that this field will ensure
     // its values aren't cached by multiple threads..
+    volatile int permits;
 
     /**
      * Define a Lock to protect critical sections.
      */
     // TODO - you fill in here
+    Lock lock;
 
     /**
      * Define a Condition that's used to wait while the number of
      * permits is 0.
      */
     // TODO - you fill in here
+    Condition permitNotEmpty;
 
     /**
      * Default constructor used for regression tests.
@@ -38,15 +41,31 @@ public class SimpleSemaphore {
     public SimpleSemaphore(int permits) {
         // TODO -- you fill in here making sure the ReentrantLock has
         // "fair" semantics.
+        this.permits = permits;
+        lock = new ReentrantLock(true);
+        permitNotEmpty = lock.newCondition();
     }
 
     /**
      * Acquire one permit from the semaphore in a manner that can be
      * interrupted.
      */
-    public void acquire() throws InterruptedException {
+    public void acquire()
+            throws InterruptedException {
         // TODO -- you fill in here, make sure the lock is always
         // released, e.g., even if an exception occurs.
+        lock.lockInterruptibly();
+        try {
+            // using while here
+            while (permits <= 0) {
+                // auto-release lock here
+                permitNotEmpty.await();
+                // auto-reacquire lock
+            }
+            permits--;
+        } finally {
+            lock.unlock();
+        }
     }
 
     /**
@@ -56,8 +75,20 @@ public class SimpleSemaphore {
      * returns.
      */
     public void acquireUninterruptibly() {
-        // TODO -- you fill in here, make sure to call you're
-        //  acquire() implementation to avoid code duplication.
+        // TODO -- you fill in here, make sure the lock is always
+        // released, e.g., even if an exception occurs.
+        boolean interrupted = false;
+        while (true) {
+            try {
+                acquire();
+                break;
+            } catch (InterruptedException ie) {
+                interrupted = true;
+            }
+        }
+        if (interrupted) {
+            Thread.currentThread().interrupt();
+        }
     }
 
     /**
@@ -66,6 +97,13 @@ public class SimpleSemaphore {
     public void release() {
         // TODO -- you fill in here, make sure the lock is always
         // released, e.g., even if an exception occurs.
+        lock.lock();
+        try {
+            if (++permits > 0)
+                permitNotEmpty.signal();
+        } finally {
+            lock.unlock();
+        }
     }
 
     /**
@@ -74,6 +112,6 @@ public class SimpleSemaphore {
     protected int availablePermits() {
         // TODO -- you fill in here, replacing 0 with the
         // appropriate field.
-        return 0;
+        return permits;
     }
 }
