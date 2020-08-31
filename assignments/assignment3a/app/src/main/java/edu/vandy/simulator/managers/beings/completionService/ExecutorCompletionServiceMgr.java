@@ -1,6 +1,7 @@
 package edu.vandy.simulator.managers.beings.completionService;
 
 import java.util.concurrent.CompletionService;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -29,12 +30,14 @@ public class ExecutorCompletionServiceMgr
      * The ExecutorService contains a cached pool of threads.
      */
     // TODO -- you fill in here.
+    ExecutorService executorService;
 
     /**
      * The CompletionService that's associated with the
      * ExecutorService above.
      */
     // TODO -- you fill in here.
+    CompletionService<BeingCallable> completionService;
 
     /**
      * Default constructor.
@@ -62,7 +65,7 @@ public class ExecutorCompletionServiceMgr
         // Return a new BeingCallable instance.
         // TODO -- you fill in here, replacing null with the
         // appropriate code.
-        return null;
+        return new BeingCallable(this);
     }
 
     /**
@@ -75,13 +78,16 @@ public class ExecutorCompletionServiceMgr
         // a pool of threads that represent the beings in this
         // simulation.
         // TODO -- you fill in here.
+        beginBeingThreadPool();
 
         // Call a method that waits for all futures to complete.
         // TODO -- you fill in here.
+        awaitCompletionOfFutures();
 
         // Call this class's shutdownNow() method to cleanly shutdown
         // the executor service.
         // TODO -- you fill in here.
+        shutdownNow();
     }
 
     /**
@@ -92,7 +98,7 @@ public class ExecutorCompletionServiceMgr
      */
     public ExecutorService createExecutorService() {
         // TODO -- you fill in here (replace null with an executor service instance).
-        return null;
+        return Executors.newCachedThreadPool();
     }
 
     /**
@@ -105,7 +111,7 @@ public class ExecutorCompletionServiceMgr
             ExecutorService executorService) {
         // TODO -- you fill in here (replace null with an executor
         // completion service instance).
-        return null;
+        return new ExecutorCompletionService<>(executorService);
     }
 
     /**
@@ -119,6 +125,9 @@ public class ExecutorCompletionServiceMgr
         // BeingCallable to the ExecutorCompletionService.
 
         // TODO -- you fill in here.
+        executorService = createExecutorService();
+        completionService = createExecutorCompletionService(executorService);
+        getBeings().forEach(completionService::submit);
     }
 
     /**
@@ -142,6 +151,15 @@ public class ExecutorCompletionServiceMgr
 
         if (Assignment.isUndergraduateTodo()) {
             // TODO -- you fill in here.
+            for (int i = 0; i < getBeingCount(); ++i) {
+                try {
+                    Future<BeingCallable> future = completionService.take();
+                    Controller.log(TAG + " " + future.get().toString());
+                } catch (InterruptedException | ExecutionException e) {
+                    Controller.log(TAG + e.getLocalizedMessage());
+                    break;
+                }
+            }
         } else if (Assignment.isGraduateTodo()) {
             // TODO -- you fill in here.
         } else {
@@ -165,6 +183,7 @@ public class ExecutorCompletionServiceMgr
 
         // Shutdown the executor *now*.
         // TODO -- you fill in here.
+        executorService.shutdownNow();
 
         Controller.log(TAG + ": shutdownNow: exited with "
                 + getRunningBeingCount() + "/"
